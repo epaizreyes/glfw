@@ -3,16 +3,21 @@ set(common_HEADERS internal.h mappings.h
                    "${GLFW_BINARY_DIR}/src/glfw_config.h"
                    "${GLFW_SOURCE_DIR}/include/GLFW/glfw3.h"
                    "${GLFW_SOURCE_DIR}/include/GLFW/glfw3native.h")
+                   
 set(common_SOURCES context.c init.c input.c monitor.c vulkan.c window.c)
 
-add_custom_target(update_mappings
-    COMMAND "${CMAKE_COMMAND}" -P "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake" mappings.h.in mappings.h
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Updating gamepad mappings from upstream repository"
-    SOURCES mappings.h.in "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake"
-    VERBATIM)
-
-set_target_properties(update_mappings PROPERTIES FOLDER "GLFW3")
+if (GLFW_MAPPING)
+    add_custom_target(update_mappings
+        COMMAND "${CMAKE_COMMAND}" -P "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake" mappings.h.in mappings.h
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Updating gamepad mappings from upstream repository"
+        SOURCES mappings.h.in "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake"
+        VERBATIM)
+        
+    set_target_properties(update_mappings PROPERTIES FOLDER "GLFW3")
+    
+    source_group(src FILES mappings.h.in)
+endif()
 
 if (_GLFW_COCOA)
     set(glfw_HEADERS ${common_HEADERS} cocoa_platform.h cocoa_joystick.h
@@ -193,3 +198,8 @@ if (GLFW_INSTALL)
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 endif()
 
+#--------------------------------------------------------------------
+# Define solution tree organization
+#--------------------------------------------------------------------
+source_group(src FILES ${common_SOURCES} ${glfw_SOURCES})
+source_group(include FILES ${common_HEADERS} ${glfw_HEADERS})
